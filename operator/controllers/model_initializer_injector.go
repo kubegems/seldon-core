@@ -70,7 +70,7 @@ type StorageInitializerConfig struct {
 func (mi *ModelInitialiser) credentialsBuilder() (credentialsBuilder *credentials.CredentialBuilder, err error) {
 	configMap, err := mi.clientset.CoreV1().ConfigMaps(ControllerNamespace).Get(mi.ctx, ControllerConfigMapName, metav1.GetOptions{})
 	if err != nil {
-		//log.Error(err, "Failed to find config map", "name", ControllerConfigMapName)
+		// log.Error(err, "Failed to find config map", "name", ControllerConfigMapName)
 		return nil, err
 	}
 
@@ -81,7 +81,7 @@ func (mi *ModelInitialiser) credentialsBuilder() (credentialsBuilder *credential
 func (mi *ModelInitialiser) getStorageInitializerConfigs() (*StorageInitializerConfig, error) {
 	configMap, err := mi.clientset.CoreV1().ConfigMaps(ControllerNamespace).Get(mi.ctx, ControllerConfigMapName, metav1.GetOptions{})
 	if err != nil {
-		//log.Error(err, "Failed to find config map", "name", ControllerConfigMapName)
+		// log.Error(err, "Failed to find config map", "name", ControllerConfigMapName)
 		return nil, err
 	}
 	return getStorageInitializerConfigsFromMap(configMap)
@@ -95,11 +95,13 @@ func getStorageInitializerConfigsFromMap(configMap *corev1.ConfigMap) (*StorageI
 			panic(fmt.Errorf("Unable to unmarshall %v json string due to %v ", StorageInitializerConfigMapKeyName, err))
 		}
 	}
-	//Ensure that we set proper values for CPU/Memory Limit/Request
-	resourceDefaults := []string{storageInitializerConfig.MemoryRequest,
+	// Ensure that we set proper values for CPU/Memory Limit/Request
+	resourceDefaults := []string{
+		storageInitializerConfig.MemoryRequest,
 		storageInitializerConfig.MemoryLimit,
 		storageInitializerConfig.CpuRequest,
-		storageInitializerConfig.CpuLimit}
+		storageInitializerConfig.CpuLimit,
+	}
 	for _, key := range resourceDefaults {
 		_, err := resource.ParseQuantity(key)
 		if err != nil {
@@ -112,7 +114,6 @@ func getStorageInitializerConfigsFromMap(configMap *corev1.ConfigMap) (*StorageI
 
 // InjectModelInitializer injects an init container to provision model data
 func (mi *ModelInitialiser) InjectModelInitializer(deployment *appsv1.Deployment, containerName string, srcURI string, serviceAccountName string, envSecretRefName string, storageInitializerImage string) (deploy *appsv1.Deployment, err error) {
-
 	if srcURI == "" {
 		return deployment, nil
 	}
@@ -123,18 +124,8 @@ func (mi *ModelInitialiser) InjectModelInitializer(deployment *appsv1.Deployment
 		return deployment, fmt.Errorf("Invalid configuration: cannot find container: %s", containerName)
 	}
 
-	ModelInitializerVolumeName := userContainer.Name + "-" + ModelInitializerVolumeSuffix
-	//kubernetes names limited to 63
-	if len(ModelInitializerVolumeName) > 63 {
-		ModelInitializerVolumeName = ModelInitializerVolumeName[0:63]
-		ModelInitializerVolumeName = strings.TrimSuffix(ModelInitializerVolumeName, "-")
-	}
-
-	ModelInitializerContainerName := userContainer.Name + "-" + ModelInitializerContainerSuffix
-	if len(ModelInitializerContainerName) > 63 {
-		ModelInitializerContainerName = ModelInitializerContainerName[0:63]
-		ModelInitializerContainerName = strings.TrimSuffix(ModelInitializerContainerName, "-")
-	}
+	ModelInitializerVolumeName := utils.GetNameWithSuffix(userContainer.Name, ModelInitializerVolumeSuffix)
+	ModelInitializerContainerName := utils.GetNameWithSuffix(userContainer.Name, ModelInitializerContainerSuffix)
 
 	// TODO: KFServing does a check for an annotation before injecting - not doing that for now
 	podSpec := &deployment.Spec.Template.Spec
