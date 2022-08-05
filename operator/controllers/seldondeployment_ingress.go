@@ -47,12 +47,12 @@ func (r IngressCreator) createKubernetesIngress(ctx context.Context, instance *m
 
 	ingress := &networkingv1.Ingress{
 		ObjectMeta: v1.ObjectMeta{
-			Name:        instance.Name,
-			Namespace:   instance.Namespace,
-			Annotations: instance.Spec.Annotations,
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
 		},
 	}
 	updatefun := func() error {
+		ingress.Annotations = instance.Spec.Annotations
 		ingress.Spec = networkingv1.IngressSpec{
 			IngressClassName: func() *string {
 				if classname := getAnnotation(instance, ANNOTATION_INGRESS_CLASS_NAME, KubernetesIngressClassName); classname != "" {
