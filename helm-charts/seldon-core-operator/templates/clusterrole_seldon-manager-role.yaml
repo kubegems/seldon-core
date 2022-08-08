@@ -226,5 +226,16 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
 {{- end }}
 {{- end }}

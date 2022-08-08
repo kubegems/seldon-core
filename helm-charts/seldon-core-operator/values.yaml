@@ -17,6 +17,13 @@ istio:
   enabled: false
   gateway: istio-system/seldon-gateway
   tlsMode: ""
+# When enable kubernetes ingress, kubernetes ingress will be created
+kubernetesIngress:
+  enabled: false
+  host: ""
+  className: ""
+  pathType: "" # Prefix or ImplementationSpecific, default: Prefix
+
 # If you have KEDA installed you can use it for autoscaling
 keda:
   enabled: false
@@ -62,15 +69,14 @@ executor:
   serviceAccount:
     name: default
   user: 8888
-# If you want to make available your own request logger for ELK integration you can set this
-# For more information see the Production Integration for Payload Request Logging with ELK in the docs
+  # If you want to make available your own request logger for ELK integration you can set this
+  # For more information see the Production Integration for Payload Request Logging with ELK in the docs
   requestLogger:
-    defaultEndpoint: 'http://default-broker'
+    defaultEndpoint: "http://default-broker"
     workQueueSize: 10000
     writeTimeoutMs: 2000
   # Whether to run full protocol API based health checks on models in deployment graph. False will just do TCP connects
   fullHealthChecks: false
-
 
 # ## Seldon Core Controller Manager Options
 image:
@@ -150,7 +156,7 @@ predictor_servers:
         image: seldonio/tfserving-proxy
       tensorflow:
         defaultImageVersion: 2.1.0
-        image:  tensorflow/serving
+        image: tensorflow/serving
   XGBOOST_SERVER:
     protocols:
       seldon:

@@ -1752,6 +1752,10 @@ func (r *SeldonDeploymentReconciler) completeServiceCreation(instance *machinele
 	return nil
 }
 
+func (r *SeldonDeploymentReconciler) createIngress(ctx context.Context, instance *machinelearningv1.SeldonDeployment) (bool, error) {
+	return (&IngressCreator{Client: r.Client}).CreateIngress(ctx, instance)
+}
+
 // Reconcile reads that state of the cluster for a SeldonDeployment object and makes changes based on the state read
 // and what is in the SeldonDeployment.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
@@ -1891,9 +1895,16 @@ func (r *SeldonDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 	}
 
+	ingressReady, err := r.createIngress(ctx, instance)
+	if err != nil {
+		r.Recorder.Eventf(instance, corev1.EventTypeWarning, constants.EventsInternalError, err.Error())
+		r.updateStatusForError(instance, err, log)
+		return ctrl.Result{}, err
+	}
+
 	switch {
 	// Everything is available - happy case.
-	case deploymentsReady && servicesReady && hpasReady && pdbsReady && (!withKedaSupport || kedaScaledObjectsReady):
+	case deploymentsReady && servicesReady && hpasReady && pdbsReady && (!withKedaSupport || kedaScaledObjectsReady) && ingressReady:
 		instance.Status.State = machinelearningv1.StatusStateAvailable
 		instance.Status.Description = ""
 	// Deployment is not ready and no longer progressing - set status to failed.
