@@ -96,6 +96,7 @@ func (r IngressCreator) createKubernetesIngress(ctx context.Context, instance *m
 		return controllerutil.SetOwnerReference(instance, ingress, r.Client.Scheme())
 	}
 	if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, ingress, updatefun); err != nil {
+		log.Error(err, "unable create ingress")
 		return false, err
 	}
 	return true, nil
