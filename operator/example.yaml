@@ -1,0 +1,25 @@
+apiVersion: machinelearning.seldon.io/v1
+kind: SeldonDeployment
+metadata:
+  name: iris-model
+
+spec:
+  name: iris
+  protocol: v2
+  predictors:
+    - graph:
+        implementation: SKLEARN_SERVER
+        modelUri: gs://seldon-models/v1.15.0-dev/sklearn/iris
+        name: model
+      name: default
+      replicas: 1
+      componentSpecs:
+        - spec:
+            containers:
+              - name: model
+                # readinessProbe: {}
+                # livenessProbe: {}
+                resources:
+                  limits:
+                    cpu: "100m"
+                    memory: 2Gi

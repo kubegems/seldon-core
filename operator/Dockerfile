@@ -1,57 +1,57 @@
-# Build the manager binary
-FROM golang:1.17.7-buster as builder
+# # Build the manager binary
+# FROM golang:1.17.7-buster as builder
 
-WORKDIR /workspace
-# Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
-# cache deps before building and copying source so that we don't need to re-download as much
-# and so that source changes don't invalidate our downloaded layer
-RUN go mod download
+# WORKDIR /workspace
+# # Copy the Go Modules manifests
+# COPY go.mod go.mod
+# COPY go.sum go.sum
+# # cache deps before building and copying source so that we don't need to re-download as much
+# # and so that source changes don't invalidate our downloaded layer
+# RUN go mod download
 
-# Copy the go source
-COPY main.go main.go
-COPY apis/ apis/
-COPY controllers/ controllers/
-COPY utils/ utils/
-COPY constants/ constants/
-COPY client/ client/
+# # Copy the go source
+# COPY main.go main.go
+# COPY apis/ apis/
+# COPY controllers/ controllers/
+# COPY utils/ utils/
+# COPY constants/ constants/
+# COPY client/ client/
 
-# Build
-RUN go build -a -o manager main.go
+# # Build
+# RUN go build -a -o manager main.go
 
-# Get MPL licensed dependencies
-RUN wget -O armon-consul-api.tar.gz https://github.com/armon/consul-api/archive/master.tar.gz
-RUN wget -O go-sql-driver-mysql.tar.gz https://github.com/go-sql-driver/mysql/archive/master.tar.gz
-RUN wget -O hashicorp-consul.tar.gz https://github.com/hashicorp/consul/archive/main.tar.gz
-RUN wget -O hashicorp-errwrap.tar.gz https://github.com/hashicorp/errwrap/archive/master.tar.gz
-RUN wget -O hashicorp-go-cleanhttp.tar.gz https://github.com/hashicorp/go-cleanhttp/archive/master.tar.gz
-RUN wget -O hashicorp-go-immutable-radix.tar.gz https://github.com/hashicorp/go-immutable-radix/archive/master.tar.gz
-RUN wget -O hashicorp-go-multierror.tar.gz https://github.com/hashicorp/go-multierror/archive/master.tar.gz
-RUN wget -O hashicorp-go-plugin.tar.gz https://github.com/hashicorp/go-plugin/archive/master.tar.gz
-RUN wget -O hashicorp-go-retryablehttp.tar.gz https://github.com/hashicorp/go-retryablehttp/archive/master.tar.gz
-RUN wget -O hashicorp-go-rootcerts.tar.gz https://github.com/hashicorp/go-rootcerts/archive/master.tar.gz
-RUN wget -O hashicorp-go-sockaddr.tar.gz https://github.com/hashicorp/go-sockaddr/archive/master.tar.gz
-RUN wget -O hashicorp-go-uuid.tar.gz https://github.com/hashicorp/go-uuid/archive/master.tar.gz
-RUN wget -O hashicorp-go-version.tar.gz https://github.com/hashicorp/go-version/archive/main.tar.gz
-RUN wget -O hashicorp-golang-lru.tar.gz https://github.com/hashicorp/golang-lru/archive/master.tar.gz
-RUN wget -O hashicorp-hcl.tar.gz https://github.com/hashicorp/hcl/archive/main.tar.gz
-RUN wget -O hashicorp-logutils.tar.gz https://github.com/hashicorp/logutils/archive/master.tar.gz
-RUN wget -O hashicorp-memberlist.tar.gz https://github.com/hashicorp/memberlist/archive/master.tar.gz
-RUN wget -O hashicorp-serf.tar.gz https://github.com/hashicorp/serf/archive/master.tar.gz
-RUN wget -O hashicorp-vault.tar.gz https://github.com/hashicorp/vault/archive/master.tar.gz
-RUN wget -O hashicorp-yamux.tar.gz https://github.com/hashicorp/yamux/archive/master.tar.gz
-RUN wget -O mitchellh-cli.tar.gz https://github.com/mitchellh/cli/archive/master.tar.gz
-RUN wget -O mitchellh-gox.tar.gz https://github.com/mitchellh/gox/archive/master.tar.gz
-RUN wget -O mozilla-tls-observatory.tar.gz https://github.com/mozilla/tls-observatory/archive/master.tar.gz
+# # Get MPL licensed dependencies
+# RUN wget -O armon-consul-api.tar.gz https://github.com/armon/consul-api/archive/master.tar.gz
+# RUN wget -O go-sql-driver-mysql.tar.gz https://github.com/go-sql-driver/mysql/archive/master.tar.gz
+# RUN wget -O hashicorp-consul.tar.gz https://github.com/hashicorp/consul/archive/main.tar.gz
+# RUN wget -O hashicorp-errwrap.tar.gz https://github.com/hashicorp/errwrap/archive/master.tar.gz
+# RUN wget -O hashicorp-go-cleanhttp.tar.gz https://github.com/hashicorp/go-cleanhttp/archive/master.tar.gz
+# RUN wget -O hashicorp-go-immutable-radix.tar.gz https://github.com/hashicorp/go-immutable-radix/archive/master.tar.gz
+# RUN wget -O hashicorp-go-multierror.tar.gz https://github.com/hashicorp/go-multierror/archive/master.tar.gz
+# RUN wget -O hashicorp-go-plugin.tar.gz https://github.com/hashicorp/go-plugin/archive/master.tar.gz
+# RUN wget -O hashicorp-go-retryablehttp.tar.gz https://github.com/hashicorp/go-retryablehttp/archive/master.tar.gz
+# RUN wget -O hashicorp-go-rootcerts.tar.gz https://github.com/hashicorp/go-rootcerts/archive/master.tar.gz
+# RUN wget -O hashicorp-go-sockaddr.tar.gz https://github.com/hashicorp/go-sockaddr/archive/master.tar.gz
+# RUN wget -O hashicorp-go-uuid.tar.gz https://github.com/hashicorp/go-uuid/archive/master.tar.gz
+# RUN wget -O hashicorp-go-version.tar.gz https://github.com/hashicorp/go-version/archive/main.tar.gz
+# RUN wget -O hashicorp-golang-lru.tar.gz https://github.com/hashicorp/golang-lru/archive/master.tar.gz
+# RUN wget -O hashicorp-hcl.tar.gz https://github.com/hashicorp/hcl/archive/main.tar.gz
+# RUN wget -O hashicorp-logutils.tar.gz https://github.com/hashicorp/logutils/archive/master.tar.gz
+# RUN wget -O hashicorp-memberlist.tar.gz https://github.com/hashicorp/memberlist/archive/master.tar.gz
+# RUN wget -O hashicorp-serf.tar.gz https://github.com/hashicorp/serf/archive/master.tar.gz
+# RUN wget -O hashicorp-vault.tar.gz https://github.com/hashicorp/vault/archive/master.tar.gz
+# RUN wget -O hashicorp-yamux.tar.gz https://github.com/hashicorp/yamux/archive/master.tar.gz
+# RUN wget -O mitchellh-cli.tar.gz https://github.com/mitchellh/cli/archive/master.tar.gz
+# RUN wget -O mitchellh-gox.tar.gz https://github.com/mitchellh/gox/archive/master.tar.gz
+# RUN wget -O mozilla-tls-observatory.tar.gz https://github.com/mozilla/tls-observatory/archive/master.tar.gz
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/base-debian10:latest
+FROM alpine:latest
 WORKDIR /
-COPY --from=builder /workspace/manager .
+COPY bin/manager /
 COPY licenses/license.txt licenses/license.txt
-COPY --from=builder /workspace/*.tar.gz licenses/mpl_source/
+# COPY --from=builder /workspace/*.tar.gz licenses/mpl_source/
 COPY generated/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_seldon-validating-webhook-configuration.yaml /tmp/operator-resources/validate.yaml
 COPY generated/v1_service_seldon-webhook-service.yaml /tmp/operator-resources/service.yaml
 COPY generated/v1_configmap_seldon-config.yaml /tmp/operator-resources/configmap.yaml

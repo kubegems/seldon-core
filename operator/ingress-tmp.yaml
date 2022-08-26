@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    application.kubegems.io/ref: '{"tenant":"t1","project":"p1","environment":"e1","namespace":"e1","username":"admin"}'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    seldon.io/ingress-class-name: default-gateway
+    seldon.io/ingress-host: api.models.kubegems.io
+    seldon.io/ingress-path: /e1/tmp/(.*)
+  creationTimestamp: "2022-08-26T08:19:09Z"
+  generation: 1
+  labels:
+    gems.kubegems.io/environment: e1
+    gems.kubegems.io/project: p1
+    gems.kubegems.io/tenant: t1
+    networking.kubegems.io/ingressClass: default-gateway
+  name: tmp
+  namespace: e1
+  ownerReferences:
+  - apiVersion: machinelearning.seldon.io/v1
+    kind: SeldonDeployment
+    name: tmp
+    uid: 8b7a6a8d-c7b1-4b1f-9304-2f06e2bc4426
+  resourceVersion: "55498638"
+  uid: 14b65820-e765-4903-abff-4a627376b795
+spec:
+  ingressClassName: default-gateway
+  rules:
+  - host: api.models.kubegems.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: tmp-predictor
+            port:
+              name: http
+        path: /e1/tmp/(.*)
+        pathType: Prefix
+status:
+  loadBalancer:
+    ingress:
+    - ip: 10.100.247.43
