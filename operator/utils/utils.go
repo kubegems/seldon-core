@@ -130,7 +130,7 @@ func SetEnvVar(envVars []v1.EnvVar, newVar v1.EnvVar, override bool) (newEnvVars
 
 // Get an environment variable given by key or return the fallback.
 func GetEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
+	if value := os.Getenv(key); value != "" {
 		return value
 	}
 	return fallback

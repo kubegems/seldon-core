@@ -72,6 +72,10 @@ helm install seldon-core-operator seldonio/seldon-core-operator --namespace seld
 | istio.tlsMode | string | `""` |  |
 | keda.enabled | bool | `false` |  |
 | kubeflow | bool | `false` |  |
+| kubernetesIngress.className | string | `""` |  |
+| kubernetesIngress.enabled | bool | `false` |  |
+| kubernetesIngress.host | string | `""` |  |
+| kubernetesIngress.pathType | string | `""` |  |
 | manager.annotations | object | `{}` |  |
 | manager.containerSecurityContext | object | `{}` |  |
 | manager.cpuLimit | string | `"500m"` |  |
