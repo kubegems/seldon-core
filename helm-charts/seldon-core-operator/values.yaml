@@ -181,6 +181,11 @@ predictor_servers:
       v2:
         defaultImageVersion: "1.2.1-slim"
         image: seldonio/mlserver
+  OPENMMLAB_SERVER:
+    protocols:
+      v2:
+        defaultImageVersion: "1.0.0-openmmlab"
+        image: kubegems/mlserver
 
 # ## Other
 # You can choose the crds to not be installed if you already installed them
