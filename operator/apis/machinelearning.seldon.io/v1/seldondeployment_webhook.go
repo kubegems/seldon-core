@@ -87,9 +87,6 @@ func (r *SeldonDeploymentSpec) checkPredictiveUnits(pu *PredictiveUnit, p *Predi
 
 	} else if IsPrepack(pu) {
 		// Only HuggingFace server is allowed for no ModelURI as it can load from Hub
-		if pu.ModelURI == "" && (pu.Implementation == nil || *pu.Implementation != PrepackHuggingFaceName) {
-			allErrs = append(allErrs, field.Invalid(fldPath, pu.Name, "Predictive unit modelUri required when using standalone servers"))
-		}
 		c := GetContainerForPredictiveUnit(p, pu.Name)
 
 		//Current non tensorflow serving prepack servers can not handle tensorflow protocol
