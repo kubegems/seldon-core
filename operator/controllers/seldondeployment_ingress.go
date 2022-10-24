@@ -6,6 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	machinelearningv1 "github.com/seldonio/seldon-core/operator/apis/machinelearning.seldon.io/v1"
 	"github.com/seldonio/seldon-core/operator/constants"
+	utils2 "github.com/seldonio/seldon-core/operator/controllers/utils"
 	"github.com/seldonio/seldon-core/operator/utils"
 	networkingv1 "k8s.io/api/networking/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,10 +55,10 @@ func (r IngressCreator) createKubernetesIngress(ctx context.Context, instance *m
 		},
 	}
 
-	ingressBasePath := getAnnotation(instance, ANNOTATION_INGRESS_PATH, r.ingressPathPrefix(instance))
-	ingressClassName := getAnnotation(instance, ANNOTATION_INGRESS_CLASS_NAME, KubernetesIngressClassName)
-	ingressPathType := networkingv1.PathType(getAnnotation(instance, ANNOTATION_INGRESS_PATH_TYPE, KubernetesIngressPathType))
-	ingressHost := getAnnotation(instance, ANNOTATION_INGRESS_HOST, KubernetesIngressHost)
+	ingressBasePath := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_PATH, r.ingressPathPrefix(instance))
+	ingressClassName := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_CLASS_NAME, KubernetesIngressClassName)
+	ingressPathType := networkingv1.PathType(utils2.GetAnnotation(instance, ANNOTATION_INGRESS_PATH_TYPE, KubernetesIngressPathType))
+	ingressHost := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_HOST, KubernetesIngressHost)
 
 	paths := make([]networkingv1.HTTPIngressPath, 0, len(instance.Spec.Predictors))
 	for _, p := range instance.Spec.Predictors {
