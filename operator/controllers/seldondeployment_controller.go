@@ -482,6 +482,8 @@ func (r *SeldonDeploymentReconciler) createComponents(ctx context.Context, mlDep
 				c.defaultDeploymentName = depName
 			}
 			deploy := createDeploymentWithoutEngine(depName, seldonId, cSpec, &p, mlDep, securityContext, true)
+			// Add upgrade strategy
+			completeDeploymentStrategy(mlDep, deploy)
 
 			if cSpec.KedaSpec != nil { // Add KEDA if needed
 				c.kedaScaledObjects = append(c.kedaScaledObjects, createKeda(cSpec, depName, seldonId, namespace))
@@ -2248,4 +2250,19 @@ func (r *SeldonDeploymentReconciler) SetupWithManager(ctx context.Context, mgr c
 			Owns(&v2.TLSContext{})
 	}
 	return builder.Complete(r)
+}
+
+func completeDeploymentStrategy(mlDep *machinelearningv1.SeldonDeployment, deploy *appsv1.Deployment) {
+	switch utils2.GetAnnotation(mlDep, machinelearningv1.ANNOTATION_UPOGRADE_STRATEGY, "") {
+	case string(appsv1.RecreateDeploymentStrategyType):
+		deploy.Spec.Strategy = appsv1.DeploymentStrategy{
+			Type: appsv1.RecreateDeploymentStrategyType,
+		}
+	case string(appsv1.RollingUpdateDeploymentStrategyType), "":
+		deploy.Spec.Strategy = appsv1.DeploymentStrategy{
+			RollingUpdate: &appsv1.RollingUpdateDeployment{
+				MaxUnavailable: &intstr.IntOrString{StrVal: "10%"},
+			},
+		}
+	}
 }

@@ -76,6 +76,8 @@ const (
 	ANNOTATION_LOGGER_WORK_QUEUE_SIZE  = "seldon.io/executor-logger-queue-size"
 	ANNOTATION_LOGGER_WRITE_TIMEOUT_MS = "seldon.io/executor-logger-write-timeout-ms"
 
+	ANNOTATION_UPOGRADE_STRATEGY = "seldon.io/upgrade-strategy"
+
 	DeploymentNamePrefix = "seldon"
 )
 
@@ -218,7 +220,7 @@ func GetContainerServiceName(mlDepName string, predictorSpec PredictorSpec, c *v
 
 // SeldonDeploymentSpec defines the desired state of SeldonDeployment
 type SeldonDeploymentSpec struct {
-	//Name is Deprecated will be removed in future
+	// Name is Deprecated will be removed in future
 	Name        string            `json:"name,omitempty" protobuf:"string,1,opt,name=name"`
 	Predictors  []PredictorSpec   `json:"predictors" protobuf:"bytes,2,opt,name=name"`
 	OauthKey    string            `json:"oauth_key,omitempty" protobuf:"string,3,opt,name=oauth_key"`
