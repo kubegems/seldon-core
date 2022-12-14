@@ -1738,7 +1738,7 @@ func (r *SeldonDeploymentReconciler) createDeployments(components *components, i
 					}
 				}
 				log.Info("Deployment status", "name", found.Name, "status", found.Status)
-				if found.Status.ReadyReplicas == 0 || found.Status.UnavailableReplicas > 0 {
+				if found.Status.UnavailableReplicas > 0 {
 					if ready {
 						availableCondition := getDeploymentCondition(found, appsv1.DeploymentAvailable)
 						log.Info("Updating availableCondition for deployment", "name", found.Name, "availableCondition", availableCondition)
