@@ -791,20 +791,20 @@ func createContainerService(deploy *appsv1.Deployment,
 	// Backwards compatible additions. From 1.5.0 onwards could always call httpPort as both should be available but for
 	// previously wrapped components need to look at transport.
 	// TODO: deprecate and just call httpPort
-	if con.LivenessProbe == nil {
-		if mlDep.Spec.Transport == machinelearningv1.TransportGrpc || pu.Endpoint.Type == machinelearningv1.GRPC {
-			con.LivenessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.GrpcPort))}}, InitialDelaySeconds: 60, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
-		} else {
-			con.LivenessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.HttpPort))}}, InitialDelaySeconds: 60, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
-		}
-	}
-	if con.ReadinessProbe == nil {
-		if mlDep.Spec.Transport == machinelearningv1.TransportGrpc || pu.Endpoint.Type == machinelearningv1.GRPC {
-			con.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.GrpcPort))}}, InitialDelaySeconds: 20, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
-		} else {
-			con.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.HttpPort))}}, InitialDelaySeconds: 20, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
-		}
-	}
+	// if con.LivenessProbe == nil {
+	// 	if mlDep.Spec.Transport == machinelearningv1.TransportGrpc || pu.Endpoint.Type == machinelearningv1.GRPC {
+	// 		con.LivenessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.GrpcPort))}}, InitialDelaySeconds: 60, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
+	// 	} else {
+	// 		con.LivenessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.HttpPort))}}, InitialDelaySeconds: 60, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
+	// 	}
+	// }
+	// if con.ReadinessProbe == nil {
+	// 	if mlDep.Spec.Transport == machinelearningv1.TransportGrpc || pu.Endpoint.Type == machinelearningv1.GRPC {
+	// 		con.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.GrpcPort))}}, InitialDelaySeconds: 20, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
+	// 	} else {
+	// 		con.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromInt(int(pu.Endpoint.HttpPort))}}, InitialDelaySeconds: 20, PeriodSeconds: 5, SuccessThreshold: 1, FailureThreshold: 3, TimeoutSeconds: 1}
+	// 	}
+	// }
 
 	// Add lifecycle probe
 	if con.Lifecycle == nil {
