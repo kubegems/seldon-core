@@ -39,7 +39,7 @@ test: install-ginkgo generate fmt vet manifests_all generate-resources
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager main.go
+	CGO_ENABLED=0 go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests_all
@@ -142,6 +142,10 @@ generate: controller-gen
 # Generate Clientset
 create-client: test
 	./hack/update-codegen.sh
+
+# Build the docker image without testing
+docker: generate-resources
+	docker buildx build . -t ${IMG} --push
 
 # Build the docker image
 docker-build: test generate-resources
