@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-logr/logr"
 	machinelearningv1 "github.com/seldonio/seldon-core/operator/apis/machinelearning.seldon.io/v1"
@@ -44,60 +45,17 @@ func (r IngressCreator) createKubernetesIngress(ctx context.Context, instance *m
 	if !KubernetesIngressEnabled {
 		return true, nil
 	}
-
-	log := logr.FromContextOrDiscard(ctx)
-	log.Info("Creating Kubernetes Ingress")
-
-	ingress := &networkingv1.Ingress{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      instance.Name,
-			Namespace: instance.Namespace,
-		},
-	}
-
 	ingressBasePath := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_PATH, r.ingressPathPrefix(instance))
 	ingressClassName := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_CLASS_NAME, KubernetesIngressClassName)
 	ingressPathType := networkingv1.PathType(utils2.GetAnnotation(instance, ANNOTATION_INGRESS_PATH_TYPE, KubernetesIngressPathType))
 	ingressHost := utils2.GetAnnotation(instance, ANNOTATION_INGRESS_HOST, KubernetesIngressHost)
 
-	paths := make([]networkingv1.HTTPIngressPath, 0, len(instance.Spec.Predictors))
-	for _, p := range instance.Spec.Predictors {
-		path := networkingv1.HTTPIngressPath{
-			Path: ingressBasePath,
-			Backend: networkingv1.IngressBackend{
-				Service: &networkingv1.IngressServiceBackend{
-					Name: machinelearningv1.GetPredictorKey(instance, &p),
-					Port: networkingv1.ServiceBackendPort{Name: constants.HttpPortName},
-				},
-			},
-		}
-		if ingressPathType != "" {
-			path.PathType = &ingressPathType
-		}
-		paths = append(paths, path)
+	// http ingress
+	if err := r.ensureIngress(ctx, instance, ingressClassName, ingressHost, ingressBasePath, &ingressPathType, constants.HttpPortName); err != nil {
+		return false, err
 	}
-
-	updatefun := func() error {
-		if ingress.Annotations == nil {
-			ingress.Annotations = make(map[string]string)
-		}
-		for k, v := range instance.Spec.Annotations {
-			ingress.Annotations[k] = v
-		}
-		if ingressClassName != "" {
-			ingress.Spec.IngressClassName = &ingressClassName
-		}
-		if len(ingress.Spec.Rules) == 0 {
-			ingress.Spec.Rules = []networkingv1.IngressRule{{}}
-		}
-		if ingressHost != "" {
-			ingress.Spec.Rules[0].Host = ingressHost
-		}
-		ingress.Spec.Rules[0].HTTP = &networkingv1.HTTPIngressRuleValue{Paths: paths}
-		return controllerutil.SetOwnerReference(instance, ingress, r.Client.Scheme())
-	}
-	if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, ingress, updatefun); err != nil {
-		log.Error(err, "unable create ingress")
+	// grpc ingress
+	if err := r.ensureIngress(ctx, instance, ingressClassName, ingressHost, "", &ingressPathType, constants.GrpcPortName); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -109,4 +67,79 @@ type IngressCreator struct {
 
 func (r *IngressCreator) ingressPathPrefix(instance *machinelearningv1.SeldonDeployment) string {
 	return "/seldon/" + instance.Namespace + "/" + instance.Name + "/"
+}
+
+func (r *IngressCreator) ensureIngress(ctx context.Context,
+	instance *machinelearningv1.SeldonDeployment,
+	ingressClassName string, ingressHost string,
+	httpbasepath string, ingressPathType *networkingv1.PathType,
+	portprotocol string,
+) error {
+	if len(instance.Spec.Predictors) == 0 {
+		return nil
+	}
+	log := logr.FromContextOrDiscard(ctx)
+	log.Info("Creating Kubernetes Ingress")
+
+	httprule := &networkingv1.HTTPIngressRuleValue{Paths: []networkingv1.HTTPIngressPath{
+		{
+			Path: "/",
+			Backend: networkingv1.IngressBackend{
+				Service: &networkingv1.IngressServiceBackend{
+					Name: machinelearningv1.GetPredictorKey(instance, &instance.Spec.Predictors[0]),
+					Port: networkingv1.ServiceBackendPort{
+						Name: portprotocol,
+					},
+				},
+			},
+			PathType: ingressPathType,
+		},
+	}}
+	// add a prefied path for http
+	if portprotocol == "http" && httpbasepath != "" {
+		httprule.Paths[0].Path = httpbasepath
+	}
+	ingressannotations := map[string]string{}
+	for k, v := range instance.Spec.Annotations {
+		ingressannotations[k] = v
+	}
+
+	// temporary fix for grpc nginx ingress
+	if portprotocol == "grpc" {
+		delete(ingressannotations, "nginx.ingress.kubernetes.io/rewrite-target")
+	}
+
+	ingressname := instance.Name
+	if portprotocol != "http" {
+		ingressname = instance.Name + "-" + portprotocol
+	}
+	ingress := &networkingv1.Ingress{ObjectMeta: v1.ObjectMeta{Name: ingressname, Namespace: instance.Namespace}}
+
+	updatefun := func() error {
+		if ingress.Annotations == nil {
+			ingress.Annotations = make(map[string]string)
+		}
+		// set backend protocol https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/annotations.md#backend-protocol
+		ingress.Annotations["nginx.ingress.kubernetes.io/backend-protocol"] = strings.ToUpper(portprotocol)
+		for k, v := range ingressannotations {
+			ingress.Annotations[k] = v
+		}
+		if ingressClassName != "" {
+			ingress.Spec.IngressClassName = &ingressClassName
+		}
+		if len(ingress.Spec.Rules) == 0 {
+			ingress.Spec.Rules = []networkingv1.IngressRule{{}}
+		}
+		if ingressHost != "" {
+			ingress.Spec.Rules[0].Host = ingressHost
+		}
+		ingress.Spec.Rules[0].HTTP = httprule
+		return controllerutil.SetOwnerReference(instance, ingress, r.Client.Scheme())
+	}
+	if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, ingress, updatefun); err != nil {
+		log.Error(err, "unable create ingress")
+		return err
+	}
+	log.Info("Created Kubernetes Ingress", "name", ingress.Name)
+	return nil
 }
